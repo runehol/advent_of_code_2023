@@ -33,31 +33,35 @@ const part1 = (rawInput: string) => {
     return s;
 };
 
-const part2 = (rawInput: string) => {
-    const input = parseInput(rawInput);
+
+const score = (cards:Card[]) =>
+{
     const card_wins = new Map<number, number>();
-    input.forEach(card => 
+    cards.forEach(card => 
         {
             card_wins.set(card.id, card.n_wins);
         });
     
     let total_cards = 0;
-    let to_process : number[] = input.map(card => card.id);
-    while(to_process.length)
-    {
 
-        ++total_cards;
-        const active = to_process.pop() || 0;
-        const n_wins = card_wins.get(active)||0;
-        if(n_wins > 0)
+    let card_counts = [0].concat(Array<number>(cards.length).fill(1));
+    for(let id = 1; id < card_counts.length; ++id)
+    {
+        const n_cards = card_counts[id];
+        const n_wins = card_wins.get(id)||0;
+        for(let c = id+1; c <= id+n_wins; ++c)
         {
-            for(let c = active+n_wins; c > active; --c)
-            {
-                to_process.push(c);
-            }
+            card_counts[c] += n_cards;
         }
     }
-    return total_cards;
+    return _.sum(card_counts);
+
+}
+
+
+const part2 = (rawInput: string) => {
+    const input = parseInput(rawInput);
+    return score(input);
 };
 
 run({
