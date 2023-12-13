@@ -10,9 +10,9 @@ const transpose = (chunk:string[]) : string[] =>
     return _.range(0, chunk[0].length).map((_, col) => (chunk.map(ln => ln[col]).join("")))
 }
 
-const mirror_pos = (chunk:string[]) : number|undefined =>
+const mirror_pos = (chunk:string[], scale: number) : number[] =>
 {
-    let sum = 0;
+    let result : number[] = [];
     for(let ref = 1; ref < chunk.length; ++ref)
     {
         let is_reflected = true;
@@ -26,49 +26,81 @@ const mirror_pos = (chunk:string[]) : number|undefined =>
         }
         if(is_reflected)
         { 
-            sum += ref;
+            result.push(ref*scale)
         }
     }
-    return sum;
+    return result;
 }
 
-//ref = 4     |
-// i = 0 1 2 3 4 5 6
-// p = 7 6 5 4 
-
-const score_map = (map:string[]): number =>
+const score_map = (map:string[]): number[] =>
 {
-    let score = 0;
-    const hor = mirror_pos(map);
-    const vert = mirror_pos(transpose(map));
-    if(vert !== undefined) score += vert;
-    //if(score != 0) return score;
-    if(hor !== undefined) score += 100*hor;
-    //console.log(map.join("\n"))
-    //console.log("")
-    //console.log(transpose(map).join("\n"))
-    //console.log("\n\n")
-    /*console.log(map);
-    console.log("hor", hor)
-    console.log("vert", vert)*/
-    return score;
+    const hor = mirror_pos(map, 100);
+    const vert = mirror_pos(transpose(map), 1);
+    return [...hor, ...vert];
 }
 
 const part1 = (rawInput: string) => {
 
     const input = parseInput(rawInput);
-    const res = _.sum(input.map(score_map));
-    console.log(res);
-    //throw ""
+    const res = _.sum(input.flatMap(score_map));
     return res;
 };
+
+const flip = (chunk:string[], row:number, col:number) => 
+{
+    return chunk.map((ln, r) => {
+        if(row != r) return ln;
+        return ln.split("").map((v, c) =>
+        {
+            if(c != col) return v;
+            if(v == '#') return '.';
+            if(v == '.') return '#';
+            throw "";
+        }).join("")
+    });
+}
+
+const all_flips = (chunk:string[]) : string[][] =>
+{
+    let result : string[][] = [];
+    for(let r = 0; r < chunk.length; ++r)
+    {
+        for(let c = 0; c < chunk[0].length; ++c)
+        {
+            result.push(flip(chunk, r, c));
+        }
+    }
+    return result;
+}
+
+const score2 = (chunk:string[]) : number[] =>
+{
+    const orig_score = score_map(chunk);
+    if(orig_score.length != 1) throw "wrong length"
+    const orig = orig_score[0]
+    for(let r = 0; r < chunk.length; ++r)
+    {
+        for(let c = 0; c < chunk[0].length; ++c)
+        {
+            const nc = flip(chunk, r, c);
+            const s = score_map(nc);
+            const filt_score = s.filter(v => v != orig);
+            if(filt_score.length > 0)
+            {
+                return filt_score;  
+            } 
+        }
+    }
+    throw "amiga";
+}
 
 const part2 = (rawInput: string) => {
     
     const input = parseInput(rawInput);
-    
-    return;
+    const res = _.sum(input.flatMap(score2));
+    return res;
 };
+
 
 run({
     part1: {
@@ -96,11 +128,25 @@ run({
     },
     part2: {
         tests: [
-            // {
-            //   input: ``,
-            //   expected: "",
-            // },
-        ],
+            {
+                input: `#.##..##.
+..#.##.#.
+##......#
+##......#
+..#.##.#.
+..##..##.
+#.#.##.#.
+
+#...##..#
+#....#..#
+..##..###
+#####.##.
+#####.##.
+..##..###
+#....#..#`,
+                expected: 400,
+              },
+          ],
         solution: part2,
     },
     trimTestInputs: true,
