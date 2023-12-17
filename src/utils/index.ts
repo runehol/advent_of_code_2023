@@ -56,8 +56,7 @@ export function memoize<Args extends unknown[], Result>(
 
 
 
-
-const a_star = <Position, >(starts: Position[], goal: Position, h:(p: Position) => number, d:(from: Position, to: Position) => number, find_neighbours:(from: Position) => Position[], is_equal:(a:Position, b:Position)=>boolean) : Position[] =>
+export function a_star<Position>(starts: Position[], goal: Position, h:(p: Position) => number, d:(from: Position, to: Position) => number, find_neighbours:(from: Position) => Position[], is_equal:(a:Position, b:Position)=>boolean, to_key:(k:Position)=>string) : Position[]
 {
     interface Candidate {
         position: Position;
@@ -73,16 +72,16 @@ const a_star = <Position, >(starts: Position[], goal: Position, h:(p: Position) 
     const infinity = 1<<30;
     const lookup = (map:Map<string, number>, key:Position) =>
     {
-        return map.get(JSON.stringify(key)) ?? infinity;
+        return map.get(to_key(key)) ?? infinity;
     }
 
     const insert = (map:Map<string, number>, key:Position, value:number) =>
     {
-        map.set(JSON.stringify(key), value);
+        map.set(to_key(key), value);
     }
 
     const open_set = new PriorityQueue<Candidate>(compare_candidates);
-    const g_score = new Map<string, number>;
+    const g_score = new Map<string, number>();
     starts.forEach(start => {
         open_set.enqueue({position:start, f_score:h(start)});        
         insert(g_score, start, 0);
@@ -98,13 +97,14 @@ const a_star = <Position, >(starts: Position[], goal: Position, h:(p: Position) 
         const {position: current} = open_set.pop();
         if(is_equal(current, goal))
         {
-            let path : Position[] = [];
+            let path : Position[] = [current];
             let c = current;
             while(1)
             {
-                let prev = came_from.get(JSON.stringify(c));
+                let prev = came_from.get(to_key(c));
                 if(prev === undefined) break;
                 path.push(prev);
+                c = prev;
             }
             return path.reverse();
         }
@@ -114,7 +114,7 @@ const a_star = <Position, >(starts: Position[], goal: Position, h:(p: Position) 
             const tentative_g_score = lookup(g_score, current) + d(current, neighbour);
             if(tentative_g_score < lookup(g_score, neighbour))
             {
-                came_from.set(JSON.stringify(neighbour), current);
+                came_from.set(to_key(neighbour), current);
                 insert(g_score, neighbour, tentative_g_score);
                 const neighbour_f = tentative_g_score + h(neighbour);
                 open_set.push({position: neighbour, f_score: neighbour_f});
@@ -124,3 +124,4 @@ const a_star = <Position, >(starts: Position[], goal: Position, h:(p: Position) 
     }
     throw "should not get here";
 }
+
