@@ -3,8 +3,6 @@
 import fileinput
 import numpy as np
 from scipy.ndimage import convolve
-from collections import namedtuple
-from functools import lru_cache
 
 b = [[v for v in line.strip()] for line in fileinput.input()]
 board = np.array(b)
