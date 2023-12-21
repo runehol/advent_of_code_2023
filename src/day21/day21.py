@@ -41,7 +41,7 @@ def pad_if_necessary(board, not_obstacles):
 
 
 target_steps = 26501365
-cycle = 131
+cycle = width
 modulo = target_steps % cycle
 
 s = start_board
@@ -50,7 +50,7 @@ X = []
 Y = []
 for i in range(0, 3*cycle):
     if i % cycle == modulo:
-        X.append(i//131)
+        X.append(i//cycle)
         Y.append(np.sum(s))
 
     s = step_edge(s, not_obstacles)
