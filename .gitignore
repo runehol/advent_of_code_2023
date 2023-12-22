@@ -2,9 +2,11 @@ node_modules
 *.temp.*
 */**/*.temp.*
 */**/input.txt
+*/**/test*.txt
 *.log
 */**/*.log
 .idea
 .vscode
 .env
 dist
+*~
