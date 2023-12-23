@@ -1,6 +1,4 @@
 import run from "aocrunner";
-import { camelCase, head } from "lodash";
-import path from "path";
 
 interface Position
 {
@@ -9,8 +7,6 @@ interface Position
 }
 
 const to_key = (p:Position) => p.x + ","+p.y;
-
-const manhattan_distance = (a:Position, b:Position) => Math.abs(a.x-b.x) + Math.abs(a.y-b.y)
 
 const eq = (a:Position, b:Position) => a.x == b.x && a.y == b.y;
 
@@ -38,93 +34,6 @@ const dirs = [
     {x:-1, y: 0},
     {x: 0, y:-1}
 ]
-
-const print = (b:Board, path:Map<string, number>) =>
-{
-    const str = b.map.map((ln, y) => ln.split("").map((t, x) =>
-    {
-        if(path.has(to_key({x, y})))
-        {
-            return "O";
-        }
-        return t;
-    }).join("")).join("\n");
-    console.log(str);
-    console.log("")
-}
-
-interface Entry
-{
-    p:Position;
-    steps_so_far:Map<string, number>;
-}
-
-const route = (b:Board, not_slippery:boolean) : number =>
-{
-    let longest_candidate = -1;
-    let stack : Entry[] = [{p:b.start, steps_so_far:new Map<string, number>()}];
-    let n_iters = 0;
-    while(stack.length)
-    {
-        const e = stack.pop();
-        if(e === undefined) throw "";
-        const {p, steps_so_far} = e;
-        // see if we're there
-        ++n_iters;
-
-        if(eq(p, b.end))
-        {
-            if(steps_so_far.size > longest_candidate) console.log("New path:", steps_so_far.size)
-            longest_candidate = Math.max(longest_candidate, steps_so_far.size)
-        } else {
-            if(0 && not_slippery)
-            {
-                if(n_iters % 1000 == 0)
-                {
-                    console.log(longest_candidate, p);
-                    print(b, steps_so_far);
-                }
-            }
-            let candidates : Position[] = [];
-            for(const d of dirs)
-            {
-                const p2 = {x:p.x+d.x, y:p.y+d.y};
-                if(!steps_so_far.has(to_key(p2)))
-                {
-                    const tile = (b.map[p2.y]??"")[p2.x];
-                    switch(tile)
-                    {
-                    case '.':
-                        //valid
-                        candidates.push(p2);
-                        break;
-                    case '>':
-                        if(not_slippery || d.x == 1) candidates.push(p2);
-                        break;
-                    case '<':
-                        if(not_slippery || d.x == -1) candidates.push(p2);
-                        break;
-                    case 'v':
-                        if(not_slippery || d.y == 1) candidates.push(p2);
-                        break;
-                    case '^':
-                        if(not_slippery || d.y == -1) candidates.push(p2);
-                        break;
-                    }
-                }
-            }
-            for(const c of candidates)
-            {
-                let next_so_far = steps_so_far;
-                if(candidates.length > 1) next_so_far = new Map<string, number>(next_so_far);
-                next_so_far.set(to_key(c), steps_so_far.size);
-                stack.push({p:c, steps_so_far:next_so_far});
-            }
-        }
-    }
-    return longest_candidate;
-}
-
 
 
 
